@@ -1,2 +1,2 @@
-# cs2tradingbot
+# DriftGrinderReactionBot
  
