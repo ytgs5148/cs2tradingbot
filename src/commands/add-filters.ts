@@ -19,11 +19,22 @@ export default {
         .addStringOption(option => 
             option.setName('category')
             .setDescription('Enter category id:')
+            .addChoices({ name: 'All', value: 'all' })
+            .addChoices({ name: 'Knife', value: 'knife' })
+            .addChoices({ name: 'Gloves', value: 'hands' })
+            .addChoices({ name: 'Rifles', value: 'rifle' })
+            .addChoices({ name: 'Pistols', value: 'pistol' })
+            .addChoices({ name: 'SMG', value: 'smg' })
+            .addChoices({ name: 'Shotgun', value: 'shotgun' })
+            .addChoices({ name: 'MachineGun', value: 'machinegun' })
+            .addChoices({ name: 'Stickers', value: 'sticker' })
+            .addChoices({ name: 'Agent', value: 'type_customplayer' })
             .setRequired(false)
         )
         .addStringOption(option => 
             option.setName('quality')
             .setDescription('Choose quality:')
+            .addChoices({ name: 'All', value: 'all' })
             .addChoices({ name: 'Normal', value: 'normal' })
             .addChoices({ name: 'Souvenir', value: 'tournament' })
             .addChoices({ name: 'StatTrek', value: 'strange' })
@@ -34,6 +45,7 @@ export default {
         .addStringOption(option => 
             option.setName('exterior')
             .setDescription('Choose exterior:')
+            .addChoices({ name: 'All', value: 'all' })
             .addChoices({ name: 'Factory New', value: 'wearcategory0' })
             .addChoices({ name: 'Minimal Wear', value: 'wearcategory1' })
             .addChoices({ name: 'Field-Tested', value: 'wearcategory2' })
@@ -61,9 +73,9 @@ export default {
             serverData.filters = {
                 maxPrice,
                 minPrice,
-                category,
-                quality,
-                exterior
+                category: (category !== 'all') ? category : undefined,
+                quality: (quality !== 'all') ? quality : undefined,
+                exterior: (exterior !== 'all') ? exterior : undefined
             }
 
             interaction.editReply('Filters added!')

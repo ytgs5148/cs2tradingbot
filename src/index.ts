@@ -31,9 +31,9 @@ Client.on('ready', async (client) => {
             let totalPage = 1
             let filter = ''
 
-            server.filters?.minPrice ? filter += `&min_price=${Math.round((server.filters?.minPrice || 1) / parseInt(process.env.CONVERSION_FROM_YEN || '1', 10))}` : null
-            server.filters?.maxPrice ? filter += `&max_price=${Math.round((server.filters?.maxPrice || 1) / parseInt(process.env.CONVERSION_FROM_YEN || '1', 10))}` : null
-            server.filters?.category ? filter += `&category=${server.filters?.category}` : null
+            server.filters?.minPrice ? filter += `&min_price=${Math.round((server.filters?.minPrice || 1) / parseFloat(process.env.CONVERSION_FROM_YEN || '1'))}` : null
+            server.filters?.maxPrice ? filter += `&max_price=${Math.round((server.filters?.maxPrice || 1) / parseFloat(process.env.CONVERSION_FROM_YEN || '1'))}` : null
+            server.filters?.category ? filter += `&category_group=${server.filters?.category}` : null
             server.filters?.exterior ? filter += `&exterior=${server.filters?.exterior}` : null
             server.filters?.quality ? filter += `&quality=${server.filters?.quality}` : null
 
@@ -46,11 +46,13 @@ Client.on('ready', async (client) => {
             if (!textChannelWithSkinportBuy && !textChannelWithBuffBuy) return console.log('Could not find channel!')
 
             for (let j = 1; j <= totalPage; j++) {
-                const itemsBuff163Raw: { items: BuffData[], total_page: number } = (await axios.get(`https://buff.163.com/api/market/goods?appid=730&page_num=${j}&page_size=80${filter}`, {
+                const itemsBuff163Raw: { items: BuffData[], total_page: number, error?: string } = (await axios.get(`https://buff.163.com/api/market/goods?appid=730&page_num=${j}&page_size=80${filter}`, {
                     headers: {
                         Cookie: process.env.COOKIE
                     }
                 })).data.data
+
+                if (itemsBuff163Raw.error) return console.log(itemsBuff163Raw.error)
                 const itemsBuff163 = itemsBuff163Raw.items
     
                 totalPage = itemsBuff163Raw.total_page
@@ -63,9 +65,9 @@ Client.on('ready', async (client) => {
                     const skinportPrice = item?.min_price
                     const buff163Price = parseFloat(i.quick_price) * (parseFloat(process.env.CONVERSION_FROM_YEN || '1'))
     
-                    if (!skinportPrice || !buff163Price || skinportPrice == buff163Price) return
+                    if (!skinportPrice || !buff163Price || (Math.abs(buff163Price - skinportPrice)) < parseInt(process.env.PROFIT || '0', 10)) return
 
-                    if (((buff163Price - skinportPrice)) < parseInt(process.env.PROFIT || '0', 10)) {
+                    if (skinportPrice > buff163Price) {
                         profitableProductsWithBuffBuy.push({
                             skinport: item,
                             buff163: i,
@@ -80,7 +82,7 @@ Client.on('ready', async (client) => {
                     }
                 })
     
-                console.log(`Found Skinport -> ${profitableProductsWithSkinPortBuy.length}, Buff -> ${profitableProductsWithBuffBuy} products in page ${j}`)
+                console.log(`Found Skinport -> ${profitableProductsWithSkinPortBuy.length}, Buff -> ${profitableProductsWithBuffBuy.length} products in page ${j}/${totalPage}`)
     
                 textChannelWithSkinportBuy && profitableProductsWithSkinPortBuy.forEach(async p => {
                     const embed = new EmbedBuilder()
@@ -188,7 +190,7 @@ const rest = new REST().setToken(process.env.TOKEN as string);
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
 
         const data = await rest.put(
-            Routes.applicationGuildCommands(process.env.CLIENT_ID as string, '723140354525888552'),
+            Routes.applicationCommands(process.env.CLIENT_ID as string),
             { body: commands.map(command => command.data.toJSON()) },
         )
 
