@@ -200,8 +200,6 @@ const rest = new REST().setToken(process.env.TOKEN as string);
     }
 })();
 
-Client.login(process.env.TOKEN)
-
 Client.on('interactionCreate', async interaction => {
     if (!interaction.isChatInputCommand()) return
 
